@@ -3,6 +3,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const userInput = document.getElementById('user-input');
   const chatBox = document.getElementById('chat-box');
 
+  // Function to safely parse basic markdown to HTML
+  function parseMarkdown(text) {
+    // First, escape any special HTML characters to prevent XSS
+    const escapedText = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+
+    // Now, apply markdown formatting
+    const html = escapedText
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')       // Italic
+        .replace(/`([^`]+)`/g, '<code>$1</code>')   // Inline code
+        .replace(/\n/g, '<br>');                     // Newlines
+
+    return html;
+  }
+
   chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -11,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Add user message to chat box
+    // Add user message to chat box (as plain text)
     addMessage(userMessage, 'user');
 
     // Clear input field
@@ -38,8 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await response.json();
 
       if (data.result) {
-        // Replace "Thinking..." with AI response
-        thinkingMessage.textContent = data.result;
+        // Replace "Thinking..." with the formatted AI response
+        thinkingMessage.innerHTML = parseMarkdown(data.result);
       } else {
         throw new Error('Sorry, no response received.');
       }
@@ -53,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function addMessage(message, sender) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('chat-message', `${sender}-message`);
-    messageElement.textContent = message;
+    messageElement.textContent = message; // User messages and initial bot message are plain text
     chatBox.appendChild(messageElement);
     // Scroll to the bottom of the chat box
     chatBox.scrollTop = chatBox.scrollHeight;
