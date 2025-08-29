@@ -1,7 +1,12 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import { GoogleGenAI } from '@google/genai'
+
+const ___filename = fileURLToPath(import.meta.url)
+const ___dirname = path.dirname(___filename)
 
 const app = express()
 const ai = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY})
@@ -44,3 +49,5 @@ app.post('/api/chat', async(req, res) => {
         res.status(500).json({ error: err.message })
     }
 })
+
+app.use(express.static(path.join(___dirname, 'public')))
